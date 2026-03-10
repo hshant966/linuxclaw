@@ -61,6 +61,7 @@ pub mod memory_recall;
 pub mod memory_store;
 pub mod model_routing_config;
 pub mod openclaw_migration;
+pub mod orchestration_settings;
 pub mod pdf_read;
 pub mod pptx_read;
 pub mod process;
