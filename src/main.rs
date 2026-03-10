@@ -1001,17 +1001,6 @@ async fn main() -> Result<()> {
                 || provider.is_some()
                 || model.is_some()
                 || memory.is_some()
-                || no_totp)
-        {
-            bail!(
-                "--interactive-ui does not accept --api-key, --provider, --model, --memory, or --no-totp"
-            );
-        }
-        if channels_only
-            && (api_key.is_some()
-                || provider.is_some()
-                || model.is_some()
-                || memory.is_some()
                 || no_totp
                 || migrate_openclaw
                 || openclaw_source.is_some()

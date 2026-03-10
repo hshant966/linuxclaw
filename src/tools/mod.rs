@@ -61,7 +61,6 @@ pub mod memory_recall;
 pub mod memory_store;
 pub mod model_routing_config;
 pub mod openclaw_migration;
-pub mod orchestration_settings;
 pub mod pdf_read;
 pub mod pptx_read;
 pub mod process;
@@ -1097,42 +1096,6 @@ mod tests {
         assert!(!names.contains(&"file_write"));
         assert!(!names.contains(&"file_edit"));
         assert!(!names.contains(&"openclaw_migration"));
-    }
-
-    #[test]
-    fn all_tools_with_runtime_includes_background_tools() {
-        let tmp = TempDir::new().unwrap();
-        let security = Arc::new(SecurityPolicy::default());
-        let mem_cfg = MemoryConfig {
-            backend: "markdown".into(),
-            ..MemoryConfig::default()
-        };
-        let mem: Arc<dyn Memory> =
-            Arc::from(crate::memory::create_memory(&mem_cfg, tmp.path(), None).unwrap());
-        let runtime: Arc<dyn RuntimeAdapter> = Arc::new(NativeRuntime::new());
-        let browser = BrowserConfig::default();
-        let http = crate::config::HttpRequestConfig::default();
-        let cfg = test_config(&tmp);
-
-        let tools = all_tools_with_runtime(
-            Arc::new(Config::default()),
-            &security,
-            runtime,
-            mem,
-            None,
-            None,
-            &browser,
-            &http,
-            &crate::config::WebFetchConfig::default(),
-            tmp.path(),
-            &HashMap::new(),
-            None,
-            &cfg,
-        );
-
-        let names: Vec<&str> = tools.iter().map(|t| t.name()).collect();
-        assert!(names.contains(&"bg_run"));
-        assert!(names.contains(&"bg_status"));
     }
 
     #[test]

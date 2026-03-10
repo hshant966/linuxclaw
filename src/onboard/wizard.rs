@@ -598,7 +598,7 @@ async fn maybe_run_openclaw_migration(
             "  {} OpenClaw data detected. Optional merge migration is available.",
             style("↻").cyan().bold()
         );
-        Confirm::with_theme(wizard_theme())
+        Confirm::new()
             .with_prompt(
                 "  Merge OpenClaw data into this ZeroClaw workspace now? (preserve existing data)",
             )
