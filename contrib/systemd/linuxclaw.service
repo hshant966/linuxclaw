@@ -1,0 +1,35 @@
+[Unit]
+Description=LinuxClaw AI Assistant Daemon
+Documentation=https://github.com/hshant966/linuxclaw
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/linuxclaw daemon
+Restart=on-failure
+RestartSec=5
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=read-only
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictNamespaces=true
+RestrictRealtime=true
+MemoryDenyWriteExecute=false
+# Runtime configuration
+Environment=RUST_LOG=info
+WorkingDirectory=/var/lib/linuxclaw
+StateDirectory=linuxclaw
+CacheDirectory=linuxclaw
+ConfigurationDirectory=linuxclaw
+# Resource limits
+LimitNOFILE=65536
+TimeoutStartSec=30
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
