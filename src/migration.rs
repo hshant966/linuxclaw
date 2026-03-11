@@ -1292,7 +1292,7 @@ fn backup_target_config(config_path: &Path) -> Result<Option<PathBuf>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::config::{Config, DelegateAgentConfig, MemoryConfig, StreamMode, TelegramConfig};
+    use crate::config::{Config, DelegateAgentConfig, MemoryConfig, ProgressMode, StreamMode, TelegramConfig};
     use crate::memory::{Memory, SqliteMemory};
     use rusqlite::params;
     use serde_json::json;
@@ -1460,6 +1460,7 @@ mod tests {
             ack_enabled: true,
             group_reply: None,
             base_url: None,
+            progress_mode: ProgressMode::default(),
         });
         config.agents.insert(
             "researcher".to_string(),
@@ -1473,6 +1474,9 @@ mod tests {
                 agentic: false,
                 allowed_tools: vec!["shell".to_string()],
                 max_iterations: 10,
+                enabled: true,
+                capabilities: Vec::new(),
+                priority: 0,
             },
         );
         config.save().await.unwrap();
