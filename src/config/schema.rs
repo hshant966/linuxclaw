@@ -49,7 +49,7 @@ fn canonical_provider_for_model_defaults(provider_name: &str) -> String {
 /// Returns a provider-aware fallback model ID when `default_model` is missing.
 pub fn default_model_fallback_for_provider(provider_name: Option<&str>) -> &'static str {
     let normalized_provider = provider_name
-        .unwrap_or("openrouter")
+        .unwrap_or("gemini")
         .trim()
         .to_ascii_lowercase()
         .replace('_', "-");
@@ -165,7 +165,7 @@ const SUPPORTED_PROXY_SERVICE_SELECTORS: &[&str] = &[
 static RUNTIME_PROXY_CONFIG: OnceLock<RwLock<ProxyConfig>> = OnceLock::new();
 static RUNTIME_PROXY_CLIENT_CACHE: OnceLock<RwLock<HashMap<String, reqwest::Client>>> =
     OnceLock::new();
-const DEFAULT_PROVIDER_NAME: &str = "openrouter";
+const DEFAULT_PROVIDER_NAME: &str = "gemini";
 const DEFAULT_MODEL_NAME: &str = "anthropic/claude-sonnet-4.6";
 
 // ── Top-level config ──────────────────────────────────────────────
@@ -210,7 +210,7 @@ pub struct Config {
     pub api_key: Option<String>,
     /// Base URL override for provider API (e.g. "http://10.0.0.1:11434" for remote Ollama)
     pub api_url: Option<String>,
-    /// Default provider ID or alias (e.g. `"openrouter"`, `"ollama"`, `"anthropic"`). Default: `"openrouter"`.
+    /// Default provider ID or alias (e.g. `"gemini"`, `"ollama"`, `"anthropic"`). Default: `"gemini"`.
     #[serde(alias = "model_provider")]
     pub default_provider: Option<String>,
     /// Optional API protocol mode for `custom:` providers.
@@ -1248,11 +1248,11 @@ fn parse_skills_prompt_injection_mode(raw: &str) -> Option<SkillsPromptInjection
 }
 
 /// Skills loading configuration (`[skills]` section).
-#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonSchema)]
 pub struct SkillsConfig {
     /// Enable loading and syncing the community open-skills repository.
-    /// Default: `false` (opt-in).
-    #[serde(default)]
+    /// Default: `true` (LinuxClaw enables community skills by default).
+    #[serde(default = "default_open_skills_enabled")]
     pub open_skills_enabled: bool,
     /// Optional path to a local open-skills repository.
     /// If unset, defaults to `$HOME/open-skills` when enabled.
@@ -1277,6 +1277,23 @@ pub struct SkillsConfig {
     /// Set via config: `clawhub_token = "..."` under `[skills]`.
     #[serde(default)]
     pub clawhub_token: Option<String>,
+}
+
+fn default_open_skills_enabled() -> bool {
+    true
+}
+
+impl Default for SkillsConfig {
+    fn default() -> Self {
+        Self {
+            open_skills_enabled: default_open_skills_enabled(),
+            open_skills_dir: None,
+            trusted_skill_roots: Vec::new(),
+            allow_scripts: false,
+            prompt_injection_mode: SkillsPromptInjectionMode::default(),
+            clawhub_token: None,
+        }
+    }
 }
 
 /// WASM plugin engine configuration (`[wasm]` section).
@@ -9859,11 +9876,11 @@ mod tests {
     #[test]
     async fn config_default_has_sane_values() {
         let c = Config::default();
-        assert_eq!(c.default_provider.as_deref(), Some("openrouter"));
+        assert_eq!(c.default_provider.as_deref(), Some("gemini"));
         assert!(c.default_model.as_deref().unwrap().contains("claude"));
         assert!((c.default_temperature - 0.7).abs() < f64::EPSILON);
         assert!(c.api_key.is_none());
-        assert!(!c.skills.open_skills_enabled);
+        assert!(c.skills.open_skills_enabled);
         assert!(!c.skills.allow_scripts);
         assert_eq!(
             c.skills.prompt_injection_mode,
@@ -12480,7 +12497,7 @@ requires_openai_auth = true
     async fn env_override_open_skills_enabled_and_dir() {
         let _env_guard = env_override_lock().await;
         let mut config = Config::default();
-        assert!(!config.skills.open_skills_enabled);
+        assert!(config.skills.open_skills_enabled);
         assert!(!config.skills.allow_scripts);
         assert!(config.skills.open_skills_dir.is_none());
         assert_eq!(
